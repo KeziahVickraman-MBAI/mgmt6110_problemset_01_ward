@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { BayStockItem, HandoverFlag, ShiftCountRecord, StockMovementEvent } from '../types/ward';
+import { BayStockItem, HandoverFlag, ShiftCountRecord, StockMovementEvent, ViewMode } from '../types/ward';
 import { WARD_CONFIG } from '../data/wardData';
 import { calculateBurnRate } from '../utils/burnRate';
 import { TrendingDown, ArrowLeftRight, Check, ArrowRight, AlertTriangle, ShieldCheck, Sparkles } from 'lucide-react';
@@ -13,6 +13,7 @@ interface TheTwoLowestProps {
   onProceedToHandover: () => void;
   historicalShifts?: ShiftCountRecord[];
   stockMovementEvents?: StockMovementEvent[];
+  viewMode: ViewMode;
 }
 
 // Preset clinical note chips for quick mobile tap
@@ -32,6 +33,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
   onProceedToHandover,
   historicalShifts: propsHistoricalShifts,
   stockMovementEvents: propsStockMovementEvents,
+  viewMode,
 }) => {
   const historicalShifts = propsHistoricalShifts || WARD_CONFIG.historicalShifts || [];
   const stockMovementEvents = propsStockMovementEvents || WARD_CONFIG.stockMovementEvents || [];
@@ -178,7 +180,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-20 max-w-3xl mx-auto px-3 sm:px-4 pt-3">
+    <div className={`space-y-4 pb-20 ${viewMode === 'web' ? 'max-w-[1200px]' : 'max-w-3xl'} mx-auto px-3 sm:px-4 pt-3`}>
       {/* Screen Title */}
       <div className="flex items-center justify-between">
         <div>
@@ -259,7 +261,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className={viewMode === 'web' ? 'grid grid-cols-2 gap-4' : 'grid grid-cols-1 gap-3'}>
           {/* Flag 1 Card */}
           {slot1Item && (
             <div

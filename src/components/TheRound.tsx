@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BayStatus, BayStockItem } from '../types/ward';
+import { BayStatus, BayStockItem, ViewMode } from '../types/ward';
 import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, ArrowRight, Sparkles, RefreshCw } from 'lucide-react';
 
 interface TheRoundProps {
@@ -10,6 +10,7 @@ interface TheRoundProps {
   onProceedToLowest: () => void;
   onMarkAllCountedForDemo?: () => void;
   onResetCounts?: () => void;
+  viewMode: ViewMode;
 }
 
 export const TheRound: React.FC<TheRoundProps> = ({
@@ -20,6 +21,7 @@ export const TheRound: React.FC<TheRoundProps> = ({
   onProceedToLowest,
   onMarkAllCountedForDemo,
   onResetCounts,
+  viewMode,
 }) => {
   // Find first uncounted bay or default to bay 4 (pending)
   const initialOpenBay = bays.find((b) => !b.isCounted)?.id || 1;
@@ -48,7 +50,7 @@ export const TheRound: React.FC<TheRoundProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-20 max-w-3xl mx-auto px-3 sm:px-4 pt-3">
+    <div className={`space-y-4 pb-20 ${viewMode === 'web' ? 'max-w-[1200px]' : 'max-w-3xl'} mx-auto px-3 sm:px-4 pt-3`}>
       {/* Screen Title & Role Notice */}
       <div className="flex items-center justify-between">
         <div>
@@ -152,7 +154,7 @@ export const TheRound: React.FC<TheRoundProps> = ({
       )}
 
       {/* 8 Bays List */}
-      <div className="space-y-2.5">
+      <div className={viewMode === 'web' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-start' : 'space-y-2.5'}>
         {bays.map((bay) => {
           const isOpen = activeBayId === bay.id;
           const bayStock = stockItems.filter((item) => item.bayId === bay.id);

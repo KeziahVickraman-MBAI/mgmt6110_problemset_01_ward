@@ -1,6 +1,6 @@
 import React from 'react';
-import { ScreenTab } from '../types/ward';
-import { ClipboardCheck, TrendingDown, FileText, Activity } from 'lucide-react';
+import { ScreenTab, ViewMode } from '../types/ward';
+import { ClipboardCheck, TrendingDown, FileText } from 'lucide-react';
 
 interface WardHeaderProps {
   wardName: string;
@@ -12,6 +12,8 @@ interface WardHeaderProps {
   onSelectTab: (tab: ScreenTab) => void;
   allBaysCounted: boolean;
   flagsConfirmedCount: number;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
 }
 
 export const WardHeader: React.FC<WardHeaderProps> = ({
@@ -24,11 +26,15 @@ export const WardHeader: React.FC<WardHeaderProps> = ({
   onSelectTab,
   allBaysCounted,
   flagsConfirmedCount,
+  viewMode,
+  onViewModeChange,
 }) => {
+  const containerClass = viewMode === 'web' ? 'max-w-[1200px]' : 'max-w-3xl';
+
   return (
     <header className="bg-blue-800 text-white shadow-md border-b border-blue-900 sticky top-0 z-30 font-sans">
       {/* Hospital & Shift Info Banner */}
-      <div className="max-w-4xl mx-auto px-4 pt-3.5 pb-3">
+      <div className={`${containerClass} mx-auto px-4 pt-3.5 pb-3`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tighter text-white flex flex-wrap items-baseline gap-1.5">
@@ -42,13 +48,48 @@ export const WardHeader: React.FC<WardHeaderProps> = ({
             </p>
           </div>
 
-          <div className="text-right shrink-0">
-            <p className="text-xs sm:text-sm font-semibold text-white leading-tight">
-              {nurseOnShift}
-            </p>
-            <span className="text-[10px] sm:text-xs bg-blue-700 text-blue-100 px-2.5 py-0.5 rounded-full inline-block mt-1 font-semibold uppercase tracking-widest">
-              {currentShift}
-            </span>
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Small two-option view toggle: Phone and Web */}
+            <div
+              id="view-toggle"
+              className="bg-blue-900/80 p-0.5 rounded-lg border border-blue-700/80 flex items-center text-xs font-semibold"
+              role="group"
+              aria-label="Layout view mode"
+            >
+              <button
+                type="button"
+                id="btn-toggle-phone"
+                onClick={() => onViewModeChange('phone')}
+                className={`px-2.5 py-1 rounded transition-colors ${
+                  viewMode === 'phone'
+                    ? 'bg-white text-blue-900 font-bold shadow-xs'
+                    : 'text-blue-200 hover:text-white'
+                }`}
+              >
+                Phone
+              </button>
+              <button
+                type="button"
+                id="btn-toggle-web"
+                onClick={() => onViewModeChange('web')}
+                className={`px-2.5 py-1 rounded transition-colors ${
+                  viewMode === 'web'
+                    ? 'bg-white text-blue-900 font-bold shadow-xs'
+                    : 'text-blue-200 hover:text-white'
+                }`}
+              >
+                Web
+              </button>
+            </div>
+
+            <div className="text-right shrink-0">
+              <p className="text-xs sm:text-sm font-semibold text-white leading-tight">
+                {nurseOnShift}
+              </p>
+              <span className="text-[10px] sm:text-xs bg-blue-700 text-blue-100 px-2.5 py-0.5 rounded-full inline-block mt-1 font-semibold uppercase tracking-widest">
+                {currentShift}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -69,7 +110,7 @@ export const WardHeader: React.FC<WardHeaderProps> = ({
 
       {/* Navigation Tabs - Clean Minimalist Bar */}
       <nav aria-label="Main Navigation" className="border-t border-blue-900/40 bg-white shadow-xs">
-        <div className="max-w-4xl mx-auto grid grid-cols-3 text-center">
+        <div className={`${containerClass} mx-auto grid grid-cols-3 text-center`}>
           {/* Tab 1: The Round */}
           <button
             id="nav-the-round"

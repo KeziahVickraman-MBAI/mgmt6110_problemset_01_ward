@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { WARD_CONFIG } from './data/wardData';
-import { BayStatus, BayStockItem, HandoverFlag, ScreenTab } from './types/ward';
+import { BayStatus, BayStockItem, HandoverFlag, ScreenTab, ViewMode } from './types/ward';
 import { WardHeader } from './components/WardHeader';
 import { TheRound } from './components/TheRound';
 import { TheTwoLowest } from './components/TheTwoLowest';
@@ -9,6 +9,12 @@ import { calculateBurnRate } from './utils/burnRate';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ScreenTab>('round');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      return 'web';
+    }
+    return 'phone';
+  });
 
   // Master ward state initialized from the single authoritative data file
   const [bays, setBays] = useState<BayStatus[]>(WARD_CONFIG.initialBays);
@@ -157,6 +163,8 @@ export default function App() {
         onSelectTab={setActiveTab}
         allBaysCounted={allBaysCounted}
         flagsConfirmedCount={confirmedFlags.length}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       {/* Main Content: Single Component Per Screen (Navigates without page reload) */}
@@ -170,6 +178,7 @@ export default function App() {
             onProceedToLowest={() => setActiveTab('lowest')}
             onMarkAllCountedForDemo={handleMarkAllCountedForDemo}
             onResetCounts={handleResetCounts}
+            viewMode={viewMode}
           />
         )}
 
@@ -183,6 +192,7 @@ export default function App() {
             onProceedToHandover={() => setActiveTab('handover')}
             historicalShifts={WARD_CONFIG.historicalShifts}
             stockMovementEvents={WARD_CONFIG.stockMovementEvents}
+            viewMode={viewMode}
           />
         )}
 
@@ -195,13 +205,14 @@ export default function App() {
             outgoingNurse={WARD_CONFIG.nurseOnShift}
             nurseBadge={WARD_CONFIG.nurseBadge}
             allBaysCounted={allBaysCounted}
+            viewMode={viewMode}
           />
         )}
       </main>
 
       {/* Arm's Length Mobile Sticky Action Bar at the bottom */}
       <footer className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2.5 px-4 z-20 shadow-sm">
-        <div className="max-w-3xl mx-auto flex items-center justify-between text-xs text-slate-600">
+        <div className={`${viewMode === 'web' ? 'max-w-[1200px]' : 'max-w-3xl'} mx-auto flex items-center justify-between text-xs text-slate-600`}>
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-500" />
             <span className="font-bold text-slate-800">AIGH</span>

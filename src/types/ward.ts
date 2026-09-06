@@ -93,3 +93,4 @@ export interface HandoverFlag {
 }
 
 export type ScreenTab = 'round' | 'lowest' | 'handover';
+export type ViewMode = 'phone' | 'web';

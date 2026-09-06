@@ -1,5 +1,5 @@
 import React from 'react';
-import { HandoverFlag } from '../types/ward';
+import { HandoverFlag, ViewMode } from '../types/ward';
 import { ShieldCheck, Clock, User, AlertCircle, CheckCircle2, FileCheck2 } from 'lucide-react';
 
 interface HandoverProps {
@@ -10,6 +10,7 @@ interface HandoverProps {
   outgoingNurse: string;
   nurseBadge: string;
   allBaysCounted: boolean;
+  viewMode: ViewMode;
 }
 
 export const Handover: React.FC<HandoverProps> = ({
@@ -20,9 +21,10 @@ export const Handover: React.FC<HandoverProps> = ({
   outgoingNurse,
   nurseBadge,
   allBaysCounted,
+  viewMode,
 }) => {
   return (
-    <div className="space-y-4 pb-20 max-w-3xl mx-auto px-3 sm:px-4 pt-3">
+    <div className={`space-y-4 pb-20 ${viewMode === 'web' ? 'max-w-[1200px]' : 'max-w-3xl'} mx-auto px-3 sm:px-4 pt-3`}>
       {/* Screen Title & Read-Only Notice */}
       <div className="flex items-center justify-between">
         <div>
@@ -109,7 +111,7 @@ export const Handover: React.FC<HandoverProps> = ({
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className={viewMode === 'web' ? 'grid grid-cols-2 gap-4 items-start' : 'space-y-3'}>
           {confirmedFlags.map((flag, index) => (
             <div
               key={flag.id}
