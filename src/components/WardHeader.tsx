@@ -111,7 +111,7 @@ export const WardHeader: React.FC<WardHeaderProps> = ({
               <TrendingDown className={`h-4 w-4 shrink-0 ${activeTab === 'lowest' ? 'text-orange-500' : 'text-slate-400'}`} />
               <span className="text-xs sm:text-sm tracking-tight uppercase font-bold">2. The Lowest</span>
               {flagsConfirmedCount === 2 && (
-                <span className="h-2 w-2 rounded-full bg-green-500" title="2 flags confirmed" />
+                <span className="h-2 w-2 rounded-full bg-red-500" title="2 flags confirmed" />
               )}
             </div>
             <span className="text-[10px] text-slate-400 mt-0.5">Shortage review</span>
