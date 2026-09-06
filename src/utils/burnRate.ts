@@ -77,21 +77,27 @@ export function calculateBurnRate(
 
   // Calculate consecutive differences, excluding any shift where a restock or transfer event occurred
   const validDeltas: number[] = [];
+  const excludedEvents: StockMovementEvent[] = [];
 
   for (let i = 1; i < countSeries.length; i++) {
     const prev = countSeries[i - 1];
     const curr = countSeries[i];
 
     // Check if any non-consumption stock movement event occurred for this bay & consumable in this shift
-    const hasMovementEvent = movementEvents.some(
+    const matchingEvents = (movementEvents || []).filter(
       (ev) =>
         ev.bayId === bayId &&
         ev.consumableId === consumableId &&
         (ev.shiftId === curr.shiftId || ev.shiftId === prev.shiftId)
     );
 
-    if (hasMovementEvent) {
+    if (matchingEvents.length > 0) {
       // Exclude interval: restock or transfer would distort burn rate
+      for (const ev of matchingEvents) {
+        if (!excludedEvents.some((e) => e.id === ev.id)) {
+          excludedEvents.push(ev);
+        }
+      }
       continue;
     }
 
@@ -114,6 +120,16 @@ export function calculateBurnRate(
     return null;
   }
 
+  // Format exclusion note if any interval was excluded (e.g. "excludes restock 06:15")
+  let exclusionNote: string | null = null;
+  if (excludedEvents.length > 0) {
+    const latestEv = excludedEvents[excludedEvents.length - 1];
+    const timeStr = latestEv.timestamp.includes(' ')
+      ? latestEv.timestamp.split(' ')[1]
+      : latestEv.timestamp;
+    exclusionNote = `excludes ${latestEv.type} ${timeStr}`;
+  }
+
   // Estimated shifts until runout
   const estimatedShiftsRemaining = currentCount / averageBurnRate;
   const coarseText = formatCoarseShifts(estimatedShiftsRemaining);
@@ -124,5 +140,6 @@ export function calculateBurnRate(
     estimatedShiftsRemaining,
     coarseText,
     warningText,
+    exclusionNote,
   };
 }

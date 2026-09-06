@@ -62,6 +62,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
         estimatedShiftsRemaining: burnRateData?.estimatedShiftsRemaining ?? null,
         burnRateCoarse: burnRateData?.coarseText ?? null,
         burnRateWarning: burnRateData?.warningText ?? null,
+        burnRateExclusion: burnRateData?.exclusionNote ?? null,
       };
     });
 
@@ -149,6 +150,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
       targetShift: nextShift,
       burnRateWarning: slot1Item.burnRateWarning || null,
       estimatedShiftsRemaining: slot1Item.estimatedShiftsRemaining ?? null,
+      burnRateExclusion: slot1Item.burnRateExclusion || null,
     };
 
     const flag2: HandoverFlag = {
@@ -168,6 +170,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
       targetShift: nextShift,
       burnRateWarning: slot2Item.burnRateWarning || null,
       estimatedShiftsRemaining: slot2Item.estimatedShiftsRemaining ?? null,
+      burnRateExclusion: slot2Item.burnRateExclusion || null,
     };
 
     onConfirmFlags([flag1, flag2]);
@@ -186,7 +189,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
             </span>
           </h2>
           <p className="text-xs text-slate-600">
-            Automatically picked by deficit from round counts. Confirm or swap using clinical judgement.
+            The two items closest to running out this shift, based on how fast each bay is using them.
           </p>
         </div>
 
@@ -282,9 +285,14 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
                   {slot1Item.deficitPercentage}% below par level
                 </p>
                 {slot1Item.burnRateWarning && (
-                  <p className="text-xs text-amber-300 font-semibold mt-2 flex items-center gap-1.5 pt-2 border-t border-slate-700/70">
+                  <p className="text-xs text-amber-300 font-semibold mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-700/70">
                     <span className="text-amber-400">⚠️</span>
                     <span>{slot1Item.burnRateWarning}</span>
+                    {slot1Item.burnRateExclusion && (
+                      <span className="text-slate-400 font-normal text-[11px] bg-slate-900/80 px-1.5 py-0.5 rounded border border-slate-700/60">
+                        {slot1Item.burnRateExclusion}
+                      </span>
+                    )}
                   </p>
                 )}
               </div>
@@ -347,9 +355,14 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
                   {slot2Item.deficitPercentage}% below par level
                 </p>
                 {slot2Item.burnRateWarning && (
-                  <p className="text-xs text-amber-300 font-semibold mt-2 flex items-center gap-1.5 pt-2 border-t border-slate-700/70">
+                  <p className="text-xs text-amber-300 font-semibold mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-700/70">
                     <span className="text-amber-400">⚠️</span>
                     <span>{slot2Item.burnRateWarning}</span>
+                    {slot2Item.burnRateExclusion && (
+                      <span className="text-slate-400 font-normal text-[11px] bg-slate-900/80 px-1.5 py-0.5 rounded border border-slate-700/60">
+                        {slot2Item.burnRateExclusion}
+                      </span>
+                    )}
                   </p>
                 )}
               </div>
@@ -431,9 +444,14 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
                   <span className="text-amber-700 font-medium">−{cand.deficit} below par</span>)
                 </div>
                 {cand.burnRateWarning && (
-                  <div className="text-xs text-amber-800 font-medium mt-1 flex items-center gap-1">
+                  <div className="text-xs text-amber-800 font-medium mt-1 flex flex-wrap items-center gap-1">
                     <span>⚠️</span>
                     <span>{cand.burnRateWarning}</span>
+                    {cand.burnRateExclusion && (
+                      <span className="text-slate-500 font-normal text-[11px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                        {cand.burnRateExclusion}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

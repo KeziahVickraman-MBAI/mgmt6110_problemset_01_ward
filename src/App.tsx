@@ -39,6 +39,7 @@ export default function App() {
         deficitPercentage,
         burnRateWarning: burnRateData?.warningText || null,
         estimatedShiftsRemaining: burnRateData?.estimatedShiftsRemaining ?? null,
+        burnRateExclusion: burnRateData?.exclusionNote ?? null,
       };
     });
 
@@ -62,7 +63,7 @@ export default function App() {
     const top2 = sorted.slice(0, 2);
     const timeNow = '18:45';
 
-    return top2.map((item, idx) => ({
+    return top2.map((item) => ({
       id: item.id,
       bayId: item.bayId,
       bayName: item.bayName,
@@ -73,15 +74,13 @@ export default function App() {
       par: item.parLevel,
       deficit: item.deficit,
       deficitPercentage: item.deficitPercentage,
-      note:
-        idx === 0
-          ? 'Emergency restock requested from central pharmacy'
-          : 'High cannula burn rate; 2 boxes on transfer from Ward 3',
+      note: '',
       nurseName: WARD_CONFIG.nurseOnShift,
       countedAt: timeNow,
       targetShift: WARD_CONFIG.nextShift,
       burnRateWarning: item.burnRateWarning,
       estimatedShiftsRemaining: item.estimatedShiftsRemaining,
+      burnRateExclusion: item.burnRateExclusion,
     }));
   }, []);
 

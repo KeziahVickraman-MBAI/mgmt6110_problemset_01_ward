@@ -55,6 +55,7 @@ export interface BurnRateResult {
   estimatedShiftsRemaining: number;
   coarseText: string; // e.g. "about a shift's worth", "2–3 shifts"
   warningText: string; // e.g. "Bay 3, gauze, 6 left, about a shift's worth"
+  exclusionNote: string | null; // e.g. "excludes restock 06:15"
 }
 
 export interface WardConfig {
@@ -88,6 +89,7 @@ export interface HandoverFlag {
   targetShift: string;
   burnRateWarning?: string | null;
   estimatedShiftsRemaining?: number | null;
+  burnRateExclusion?: string | null;
 }
 
 export type ScreenTab = 'round' | 'lowest' | 'handover';
