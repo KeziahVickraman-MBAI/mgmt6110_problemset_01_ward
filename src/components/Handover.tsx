@@ -171,6 +171,14 @@ export const Handover: React.FC<HandoverProps> = ({
                 </div>
               </div>
 
+              {/* Burn Rate Warning Line: One line of text appended to each flag */}
+              {flag.burnRateWarning && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg px-3 py-2 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                  <span>{flag.burnRateWarning}</span>
+                </div>
+              )}
+
               {/* Note (if provided) */}
               {flag.note ? (
                 <div className="bg-white border border-slate-200 rounded-lg p-2.5 flex items-start gap-2">

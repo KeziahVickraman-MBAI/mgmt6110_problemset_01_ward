@@ -32,6 +32,31 @@ export interface BayStatus {
   lastCountedAt: string | null;
 }
 
+export interface StockMovementEvent {
+  id: string;
+  shiftId: string;
+  bayId: number;
+  consumableId: ConsumableId;
+  type: 'restock' | 'transfer';
+  quantity: number; // e.g. +10 or -2
+  timestamp: string;
+  notes?: string;
+}
+
+export interface ShiftCountRecord {
+  shiftId: string;
+  shiftName: string;
+  timestamp: string;
+  counts: Record<string, number>; // key: `${bayId}-${consumableId}` -> count
+}
+
+export interface BurnRateResult {
+  burnRate: number; // average consumption per shift
+  estimatedShiftsRemaining: number;
+  coarseText: string; // e.g. "about a shift's worth", "2–3 shifts"
+  warningText: string; // e.g. "Bay 3, gauze, 6 left, about a shift's worth"
+}
+
 export interface WardConfig {
   wardName: string;
   currentShift: string;
@@ -42,6 +67,8 @@ export interface WardConfig {
   parLevels: Record<ConsumableId, number>;
   initialStockItems: BayStockItem[];
   initialBays: BayStatus[];
+  historicalShifts: ShiftCountRecord[];
+  stockMovementEvents: StockMovementEvent[];
 }
 
 export interface HandoverFlag {
@@ -59,6 +86,8 @@ export interface HandoverFlag {
   nurseName: string;
   countedAt: string;
   targetShift: string;
+  burnRateWarning?: string | null;
+  estimatedShiftsRemaining?: number | null;
 }
 
 export type ScreenTab = 'round' | 'lowest' | 'handover';

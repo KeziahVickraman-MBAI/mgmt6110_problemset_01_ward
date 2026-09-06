@@ -5,6 +5,7 @@ import { WardHeader } from './components/WardHeader';
 import { TheRound } from './components/TheRound';
 import { TheTwoLowest } from './components/TheTwoLowest';
 import { Handover } from './components/Handover';
+import { calculateBurnRate } from './utils/burnRate';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ScreenTab>('round');
@@ -13,15 +14,50 @@ export default function App() {
   const [bays, setBays] = useState<BayStatus[]>(WARD_CONFIG.initialBays);
   const [stockItems, setStockItems] = useState<BayStockItem[]>(WARD_CONFIG.initialStockItems);
 
-  // Initial confirmed flags automatically derived from the top two deficits in the initial data
+  // Initial confirmed flags automatically derived from the top two runout risks or deficits
   const initialDefaultFlags = useMemo<HandoverFlag[]>(() => {
-    const sorted = [...WARD_CONFIG.initialStockItems]
-      .map((item) => ({
+    const historicalShifts = WARD_CONFIG.historicalShifts || [];
+    const stockMovementEvents = WARD_CONFIG.stockMovementEvents || [];
+    const burnRateActive = historicalShifts.length >= 6;
+
+    const enriched = WARD_CONFIG.initialStockItems.map((item) => {
+      const deficit = item.parLevel - item.count;
+      const deficitPercentage = Math.round((deficit / item.parLevel) * 100);
+      const burnRateData = calculateBurnRate(
+        item.bayId,
+        item.bayName,
+        item.consumableId,
+        item.consumableName,
+        item.count,
+        historicalShifts,
+        stockMovementEvents
+      );
+
+      return {
         ...item,
-        deficit: item.parLevel - item.count,
-        deficitPercentage: Math.round(((item.parLevel - item.count) / item.parLevel) * 100),
-      }))
-      .sort((a, b) => b.deficit - a.deficit || a.count - b.count);
+        deficit,
+        deficitPercentage,
+        burnRateWarning: burnRateData?.warningText || null,
+        estimatedShiftsRemaining: burnRateData?.estimatedShiftsRemaining ?? null,
+      };
+    });
+
+    const sorted = [...enriched].sort((a, b) => {
+      if (burnRateActive) {
+        const aShifts = a.estimatedShiftsRemaining;
+        const bShifts = b.estimatedShiftsRemaining;
+        if (aShifts !== null && bShifts !== null) {
+          if (Math.abs(aShifts - bShifts) > 0.001) {
+            return aShifts - bShifts;
+          }
+        } else if (aShifts !== null) {
+          return -1;
+        } else if (bShifts !== null) {
+          return 1;
+        }
+      }
+      return b.deficit - a.deficit || a.count - b.count;
+    });
 
     const top2 = sorted.slice(0, 2);
     const timeNow = '18:45';
@@ -44,6 +80,8 @@ export default function App() {
       nurseName: WARD_CONFIG.nurseOnShift,
       countedAt: timeNow,
       targetShift: WARD_CONFIG.nextShift,
+      burnRateWarning: item.burnRateWarning,
+      estimatedShiftsRemaining: item.estimatedShiftsRemaining,
     }));
   }, []);
 
@@ -144,6 +182,8 @@ export default function App() {
             confirmedFlags={confirmedFlags}
             onConfirmFlags={(flags) => setConfirmedFlags(flags)}
             onProceedToHandover={() => setActiveTab('handover')}
+            historicalShifts={WARD_CONFIG.historicalShifts}
+            stockMovementEvents={WARD_CONFIG.stockMovementEvents}
           />
         )}
 

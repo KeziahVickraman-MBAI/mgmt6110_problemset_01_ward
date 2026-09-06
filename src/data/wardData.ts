@@ -4,7 +4,154 @@
  * par levels, nurse-on-shift, shift timings, and all 48 bay-consumable rows (8 bays x 6 consumables).
  */
 
-import { ConsumableConfig, ConsumableId, WardConfig } from '../types/ward';
+import { ConsumableConfig, ConsumableId, WardConfig, ShiftCountRecord, StockMovementEvent } from '../types/ward';
+
+export const STOCK_MOVEMENT_EVENTS: StockMovementEvent[] = [
+  {
+    id: 'event-1',
+    shiftId: 'shift-4',
+    bayId: 3,
+    consumableId: 'gauze',
+    type: 'restock',
+    quantity: 10,
+    timestamp: '2026-09-04 08:30',
+    notes: 'Pharmacy restock delivery of sterile gauze packs',
+  },
+  {
+    id: 'event-2',
+    shiftId: 'shift-3',
+    bayId: 3,
+    consumableId: 'gauze',
+    type: 'transfer',
+    quantity: -2,
+    timestamp: '2026-09-04 22:15',
+    notes: 'Transferred 2 gauze packs to Bay 1 for acute wound management',
+  },
+  {
+    id: 'event-3',
+    shiftId: 'shift-1',
+    bayId: 3,
+    consumableId: 'gauze',
+    type: 'restock',
+    quantity: 10,
+    timestamp: '2026-09-05 21:00',
+    notes: 'Emergency stores restock delivery',
+  },
+  {
+    id: 'event-4',
+    shiftId: 'shift-5',
+    bayId: 7,
+    consumableId: 'saline',
+    type: 'restock',
+    quantity: 15,
+    timestamp: '2026-09-03 20:00',
+    notes: 'Bulk saline delivery received',
+  },
+  {
+    id: 'event-5',
+    shiftId: 'shift-2',
+    bayId: 4,
+    consumableId: 'cannulas',
+    type: 'restock',
+    quantity: 10,
+    timestamp: '2026-09-05 09:00',
+    notes: 'Central store top-up',
+  },
+];
+
+// 6 historical shifts of timestamped counts across all bays and consumables
+export const HISTORICAL_SHIFTS: ShiftCountRecord[] = [
+  {
+    shiftId: 'shift-6',
+    shiftName: 'Day Shift (3 days ago)',
+    timestamp: '2026-09-03 18:00',
+    counts: {
+      'bay1-gloves': 10, 'bay1-gauze': 12, 'bay1-saline': 20, 'bay1-cannulas': 15, 'bay1-dressings': 8, 'bay1-sharps': 4,
+      'bay2-gloves': 6, 'bay2-gauze': 12, 'bay2-saline': 18, 'bay2-cannulas': 14, 'bay2-dressings': 7, 'bay2-sharps': 4,
+      'bay3-gloves': 10, 'bay3-gauze': 12, 'bay3-saline': 19, 'bay3-cannulas': 14, 'bay3-dressings': 8, 'bay3-sharps': 4,
+      'bay4-gloves': 9, 'bay4-gauze': 11, 'bay4-saline': 16, 'bay4-cannulas': 10, 'bay4-dressings': 7, 'bay4-sharps': 4,
+      'bay5-gloves': 10, 'bay5-gauze': 12, 'bay5-saline': 20, 'bay5-cannulas': 15, 'bay5-dressings': 5, 'bay5-sharps': 4,
+      'bay6-gloves': 10, 'bay6-gauze': 12, 'bay6-saline': 20, 'bay6-cannulas': 15, 'bay6-dressings': 8, 'bay6-sharps': 4,
+      'bay7-gloves': 10, 'bay7-gauze': 12, 'bay7-saline': 8, 'bay7-cannulas': 13, 'bay7-dressings': 8, 'bay7-sharps': 4,
+      'bay8-gloves': 9, 'bay8-gauze': 8, 'bay8-saline': 18, 'bay8-cannulas': 12, 'bay8-dressings': 7, 'bay8-sharps': 4,
+    },
+  },
+  {
+    shiftId: 'shift-5',
+    shiftName: 'Night Shift (3 days ago)',
+    timestamp: '2026-09-04 06:00',
+    counts: {
+      'bay1-gloves': 10, 'bay1-gauze': 12, 'bay1-saline': 19, 'bay1-cannulas': 14, 'bay1-dressings': 8, 'bay1-sharps': 4,
+      'bay2-gloves': 5, 'bay2-gauze': 11, 'bay2-saline': 17, 'bay2-cannulas': 13, 'bay2-dressings': 7, 'bay2-sharps': 4,
+      'bay3-gloves': 9, 'bay3-gauze': 6, 'bay3-saline': 18, 'bay3-cannulas': 13, 'bay3-dressings': 8, 'bay3-sharps': 3,
+      'bay4-gloves': 9, 'bay4-gauze': 10, 'bay4-saline': 15, 'bay4-cannulas': 8, 'bay4-dressings': 6, 'bay4-sharps': 3,
+      'bay5-gloves': 10, 'bay5-gauze': 12, 'bay5-saline': 19, 'bay5-cannulas': 15, 'bay5-dressings': 4, 'bay5-sharps': 4,
+      'bay6-gloves': 10, 'bay6-gauze': 12, 'bay6-saline': 20, 'bay6-cannulas': 14, 'bay6-dressings': 7, 'bay6-sharps': 4,
+      'bay7-gloves': 9, 'bay7-gauze': 11, 'bay7-saline': 7, 'bay7-cannulas': 12, 'bay7-dressings': 8, 'bay7-sharps': 3,
+      'bay8-gloves': 8, 'bay8-gauze': 7, 'bay8-saline': 17, 'bay8-cannulas': 11, 'bay8-dressings': 6, 'bay8-sharps': 3,
+    },
+  },
+  {
+    shiftId: 'shift-4',
+    shiftName: 'Day Shift (2 days ago)',
+    timestamp: '2026-09-04 18:00',
+    counts: {
+      'bay1-gloves': 9, 'bay1-gauze': 11, 'bay1-saline': 19, 'bay1-cannulas': 14, 'bay1-dressings': 7, 'bay1-sharps': 4,
+      'bay2-gloves': 4, 'bay2-gauze': 11, 'bay2-saline': 16, 'bay2-cannulas': 13, 'bay2-dressings': 7, 'bay2-sharps': 3,
+      'bay3-gloves': 9, 'bay3-gauze': 12, 'bay3-saline': 18, 'bay3-cannulas': 13, 'bay3-dressings': 7, 'bay3-sharps': 3,
+      'bay4-gloves': 8, 'bay4-gauze': 10, 'bay4-saline': 14, 'bay4-cannulas': 6, 'bay4-dressings': 6, 'bay4-sharps': 3,
+      'bay5-gloves': 9, 'bay5-gauze': 11, 'bay5-saline': 18, 'bay5-cannulas': 14, 'bay5-dressings': 3, 'bay5-sharps': 4,
+      'bay6-gloves': 10, 'bay6-gauze': 12, 'bay6-saline': 20, 'bay6-cannulas': 14, 'bay6-dressings': 7, 'bay6-sharps': 4,
+      'bay7-gloves': 9, 'bay7-gauze': 11, 'bay7-saline': 6, 'bay7-cannulas': 12, 'bay7-dressings': 7, 'bay7-sharps': 3,
+      'bay8-gloves': 8, 'bay8-gauze': 6, 'bay8-saline': 17, 'bay8-cannulas': 11, 'bay8-dressings': 6, 'bay8-sharps': 3,
+    },
+  },
+  {
+    shiftId: 'shift-3',
+    shiftName: 'Night Shift (2 days ago)',
+    timestamp: '2026-09-05 06:00',
+    counts: {
+      'bay1-gloves': 9, 'bay1-gauze': 11, 'bay1-saline': 18, 'bay1-cannulas': 13, 'bay1-dressings': 7, 'bay1-sharps': 4,
+      'bay2-gloves': 3, 'bay2-gauze': 10, 'bay2-saline': 15, 'bay2-cannulas': 12, 'bay2-dressings': 6, 'bay2-sharps': 3,
+      'bay3-gloves': 8, 'bay3-gauze': 11, 'bay3-saline': 17, 'bay3-cannulas': 12, 'bay3-dressings': 7, 'bay3-sharps': 3,
+      'bay4-gloves': 8, 'bay4-gauze': 9, 'bay4-saline': 14, 'bay4-cannulas': 4, 'bay4-dressings': 5, 'bay4-sharps': 3,
+      'bay5-gloves': 9, 'bay5-gauze': 11, 'bay5-saline': 18, 'bay5-cannulas': 14, 'bay5-dressings': 2, 'bay5-sharps': 4,
+      'bay6-gloves': 10, 'bay6-gauze': 12, 'bay6-saline': 19, 'bay6-cannulas': 13, 'bay6-dressings': 6, 'bay6-sharps': 4,
+      'bay7-gloves': 8, 'bay7-gauze': 10, 'bay7-saline': 5, 'bay7-cannulas': 11, 'bay7-dressings': 7, 'bay7-sharps': 3,
+      'bay8-gloves': 7, 'bay8-gauze': 5, 'bay8-saline': 16, 'bay8-cannulas': 10, 'bay8-dressings': 5, 'bay8-sharps': 2,
+    },
+  },
+  {
+    shiftId: 'shift-2',
+    shiftName: 'Day Shift (Yesterday)',
+    timestamp: '2026-09-05 18:00',
+    counts: {
+      'bay1-gloves': 9, 'bay1-gauze': 11, 'bay1-saline': 18, 'bay1-cannulas': 13, 'bay1-dressings': 7, 'bay1-sharps': 4,
+      'bay2-gloves': 3, 'bay2-gauze': 10, 'bay2-saline': 15, 'bay2-cannulas': 12, 'bay2-dressings': 6, 'bay2-sharps': 3,
+      'bay3-gloves': 8, 'bay3-gauze': 6, 'bay3-saline': 17, 'bay3-cannulas': 12, 'bay3-dressings': 7, 'bay3-sharps': 2,
+      'bay4-gloves': 7, 'bay4-gauze': 9, 'bay4-saline': 13, 'bay4-cannulas': 12, 'bay4-dressings': 5, 'bay4-sharps': 3,
+      'bay5-gloves': 9, 'bay5-gauze': 11, 'bay5-saline': 17, 'bay5-cannulas': 14, 'bay5-dressings': 2, 'bay5-sharps': 4,
+      'bay6-gloves': 10, 'bay6-gauze': 12, 'bay6-saline': 19, 'bay6-cannulas': 13, 'bay6-dressings': 6, 'bay6-sharps': 4,
+      'bay7-gloves': 8, 'bay7-gauze': 10, 'bay7-saline': 4, 'bay7-cannulas': 11, 'bay7-dressings': 7, 'bay7-sharps': 3,
+      'bay8-gloves': 7, 'bay8-gauze': 4, 'bay8-saline': 16, 'bay8-cannulas': 10, 'bay8-dressings': 5, 'bay8-sharps': 2,
+    },
+  },
+  {
+    shiftId: 'shift-1',
+    shiftName: 'Night Shift (Yesterday)',
+    timestamp: '2026-09-06 06:00',
+    counts: {
+      'bay1-gloves': 9, 'bay1-gauze': 11, 'bay1-saline': 18, 'bay1-cannulas': 13, 'bay1-dressings': 7, 'bay1-sharps': 4,
+      'bay2-gloves': 2, 'bay2-gauze': 10, 'bay2-saline': 14, 'bay2-cannulas': 12, 'bay2-dressings': 6, 'bay2-sharps': 3,
+      'bay3-gloves': 8, 'bay3-gauze': 12, 'bay3-saline': 16, 'bay3-cannulas': 11, 'bay3-dressings': 7, 'bay3-sharps': 2,
+      'bay4-gloves': 7, 'bay4-gauze': 8, 'bay4-saline': 12, 'bay4-cannulas': 4, 'bay4-dressings': 5, 'bay4-sharps': 3,
+      'bay5-gloves': 9, 'bay5-gauze': 11, 'bay5-saline': 17, 'bay5-cannulas': 14, 'bay5-dressings': 1, 'bay5-sharps': 4,
+      'bay6-gloves': 10, 'bay6-gauze': 12, 'bay6-saline': 19, 'bay6-cannulas': 13, 'bay6-dressings': 6, 'bay6-sharps': 4,
+      'bay7-gloves': 8, 'bay7-gauze': 10, 'bay7-saline': 4, 'bay7-cannulas': 10, 'bay7-dressings': 7, 'bay7-sharps': 3,
+      'bay8-gloves': 6, 'bay8-gauze': 4, 'bay8-saline': 15, 'bay8-cannulas': 9, 'bay8-dressings': 5, 'bay8-sharps': 2,
+    },
+  },
+];
 
 export const CONSUMABLE_CONFIGS: Record<ConsumableId, ConsumableConfig> = {
   gloves: {
@@ -97,7 +244,7 @@ export const WARD_CONFIG: WardConfig = {
 
     // Bay 3 (Beds 9-12) - Counted
     { id: 'bay3-gloves', bayId: 3, bayName: 'Bay 3', consumableId: 'gloves', consumableName: 'Gloves', unit: 'boxes', parLevel: 10, count: 8 },
-    { id: 'bay3-gauze', bayId: 3, bayName: 'Bay 3', consumableId: 'gauze', consumableName: 'Gauze', unit: 'packs', parLevel: 12, count: 9 },
+    { id: 'bay3-gauze', bayId: 3, bayName: 'Bay 3', consumableId: 'gauze', consumableName: 'Gauze', unit: 'packs', parLevel: 12, count: 6 },
     { id: 'bay3-saline', bayId: 3, bayName: 'Bay 3', consumableId: 'saline', consumableName: 'Saline flushes', unit: 'units', parLevel: 20, count: 16 },
     { id: 'bay3-cannulas', bayId: 3, bayName: 'Bay 3', consumableId: 'cannulas', consumableName: 'Cannulas', unit: 'units', parLevel: 15, count: 11 },
     { id: 'bay3-dressings', bayId: 3, bayName: 'Bay 3', consumableId: 'dressings', consumableName: 'Dressing packs', unit: 'packs', parLevel: 8, count: 7 },
@@ -143,4 +290,6 @@ export const WARD_CONFIG: WardConfig = {
     { id: 'bay8-dressings', bayId: 8, bayName: 'Bay 8', consumableId: 'dressings', consumableName: 'Dressing packs', unit: 'packs', parLevel: 8, count: 5 },
     { id: 'bay8-sharps', bayId: 8, bayName: 'Bay 8', consumableId: 'sharps', consumableName: 'Sharps bins', unit: 'units', parLevel: 4, count: 2 },
   ],
+  historicalShifts: HISTORICAL_SHIFTS,
+  stockMovementEvents: STOCK_MOVEMENT_EVENTS,
 };

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { BayStockItem, HandoverFlag } from '../types/ward';
+import React, { useState, useMemo } from 'react';
+import { BayStockItem, HandoverFlag, ShiftCountRecord, StockMovementEvent } from '../types/ward';
+import { WARD_CONFIG } from '../data/wardData';
+import { calculateBurnRate } from '../utils/burnRate';
 import { TrendingDown, ArrowLeftRight, Check, ArrowRight, AlertTriangle, ShieldCheck, Sparkles } from 'lucide-react';
 
 interface TheTwoLowestProps {
@@ -9,6 +11,8 @@ interface TheTwoLowestProps {
   confirmedFlags: HandoverFlag[];
   onConfirmFlags: (flags: HandoverFlag[]) => void;
   onProceedToHandover: () => void;
+  historicalShifts?: ShiftCountRecord[];
+  stockMovementEvents?: StockMovementEvent[];
 }
 
 // Preset clinical note chips for quick mobile tap
@@ -26,19 +30,60 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
   confirmedFlags,
   onConfirmFlags,
   onProceedToHandover,
+  historicalShifts: propsHistoricalShifts,
+  stockMovementEvents: propsStockMovementEvents,
 }) => {
-  // Rank all 48 items by deficit (parLevel - count) descending
-  const sortedCandidates = [...stockItems]
-    .map((item) => {
+  const historicalShifts = propsHistoricalShifts || WARD_CONFIG.historicalShifts || [];
+  const stockMovementEvents = propsStockMovementEvents || WARD_CONFIG.stockMovementEvents || [];
+  const burnRateActive = historicalShifts.length >= 6;
+
+  // Compute burn rate and sort candidates
+  // Rule: Stays off until 6 shifts of history exist. Before that, flags read as they do in v1.
+  // Rule: Also reorders Screen 2: the two lowest become the two closest to running out, which is not always the same thing.
+  const sortedCandidates = useMemo(() => {
+    const candidates = stockItems.map((item) => {
       const deficit = item.parLevel - item.count;
       const deficitPercentage = Math.round((deficit / item.parLevel) * 100);
+      const burnRateData = calculateBurnRate(
+        item.bayId,
+        item.bayName,
+        item.consumableId,
+        item.consumableName,
+        item.count,
+        historicalShifts,
+        stockMovementEvents
+      );
+
       return {
         ...item,
         deficit,
         deficitPercentage,
+        burnRate: burnRateData?.burnRate ?? null,
+        estimatedShiftsRemaining: burnRateData?.estimatedShiftsRemaining ?? null,
+        burnRateCoarse: burnRateData?.coarseText ?? null,
+        burnRateWarning: burnRateData?.warningText ?? null,
       };
-    })
-    .sort((a, b) => b.deficit - a.deficit || a.count - b.count);
+    });
+
+    return [...candidates].sort((a, b) => {
+      if (burnRateActive) {
+        // Reorder by closest to running out (lowest estimated shifts remaining first)
+        const aShifts = a.estimatedShiftsRemaining;
+        const bShifts = b.estimatedShiftsRemaining;
+
+        if (aShifts !== null && bShifts !== null) {
+          if (Math.abs(aShifts - bShifts) > 0.001) {
+            return aShifts - bShifts;
+          }
+        } else if (aShifts !== null) {
+          return -1;
+        } else if (bShifts !== null) {
+          return 1;
+        }
+      }
+      return b.deficit - a.deficit || a.count - b.count;
+    });
+  }, [stockItems, historicalShifts, stockMovementEvents, burnRateActive]);
 
   // Initialize selected flags from confirmedFlags if present, else top 2 candidates
   const [slot1Item, setSlot1Item] = useState<typeof sortedCandidates[0]>(() => {
@@ -102,6 +147,8 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
       nurseName,
       countedAt: nowTime,
       targetShift: nextShift,
+      burnRateWarning: slot1Item.burnRateWarning || null,
+      estimatedShiftsRemaining: slot1Item.estimatedShiftsRemaining ?? null,
     };
 
     const flag2: HandoverFlag = {
@@ -119,6 +166,8 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
       nurseName,
       countedAt: nowTime,
       targetShift: nextShift,
+      burnRateWarning: slot2Item.burnRateWarning || null,
+      estimatedShiftsRemaining: slot2Item.estimatedShiftsRemaining ?? null,
     };
 
     onConfirmFlags([flag1, flag2]);
@@ -203,7 +252,7 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
             <span>2. THE LOWEST</span>
           </h3>
           <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
-            Ranked by Par Deficit
+            {burnRateActive ? 'Ranked by Runout Risk (Burn Rate)' : 'Ranked by Par Deficit'}
           </span>
         </div>
 
@@ -232,6 +281,12 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
                 <p className="text-[11px] text-orange-400 italic font-medium mt-1">
                   {slot1Item.deficitPercentage}% below par level
                 </p>
+                {slot1Item.burnRateWarning && (
+                  <p className="text-xs text-amber-300 font-semibold mt-2 flex items-center gap-1.5 pt-2 border-t border-slate-700/70">
+                    <span className="text-amber-400">⚠️</span>
+                    <span>{slot1Item.burnRateWarning}</span>
+                  </p>
+                )}
               </div>
 
               {/* Note input for incoming shift */}
@@ -291,6 +346,12 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
                 <p className="text-[11px] text-orange-400 italic font-medium mt-1">
                   {slot2Item.deficitPercentage}% below par level
                 </p>
+                {slot2Item.burnRateWarning && (
+                  <p className="text-xs text-amber-300 font-semibold mt-2 flex items-center gap-1.5 pt-2 border-t border-slate-700/70">
+                    <span className="text-amber-400">⚠️</span>
+                    <span>{slot2Item.burnRateWarning}</span>
+                  </p>
+                )}
               </div>
 
               {/* Note input for incoming shift */}
@@ -369,6 +430,12 @@ export const TheTwoLowest: React.FC<TheTwoLowestProps> = ({
                   Count: <strong className="text-slate-800">{cand.count}</strong> / Par: {cand.parLevel} (
                   <span className="text-amber-700 font-medium">−{cand.deficit} below par</span>)
                 </div>
+                {cand.burnRateWarning && (
+                  <div className="text-xs text-amber-800 font-medium mt-1 flex items-center gap-1">
+                    <span>⚠️</span>
+                    <span>{cand.burnRateWarning}</span>
+                  </div>
+                )}
               </div>
 
               {/* Swap Action Buttons */}
