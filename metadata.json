@@ -1,0 +1,6 @@
+{
+  "name": "AIGH - Ward Consumables Handover",
+  "description": "Am I Good for Handover? A mobile web app for inpatient ward nurses to count consumables across 8 bays and flag the two lowest items for shift handover.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
